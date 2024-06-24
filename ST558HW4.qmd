@@ -1,0 +1,224 @@
+---
+title: "ST 558 Homework 4"
+author: "Luke Freudenheim"
+description: EDIT THIS LATER
+format: html
+---
+
+# Task 1: Conceptional Questions
+
+1. What is the purpose of the lapply() function? What is the equivalent purrr function?
+
+> This function take in either a data frame, vector or list as input and always outputs a list after applying a specific function to your data. The equivalent purrr function is the map() function.
+
+2. Suppose we have a list called my_list. Each element of the list is a numeric data frame (all columns
+are numeric). We want use lapply() to run the code cor(numeric_matrix, method = "kendall")
+on each element of the list. Write code to do this below!
+
+> lapply(numeric_matrix = my_list, FUN = cor, method = "kendall")
+
+3. What are two advantages of using purrr functions instead of the BaseR apply family?
+
+> The main advantage of the purrr functions is there is more consistency within the function family than there is with the BaseR family. The other advantage is that purrr functions give a shorthand way to make anonymous functions, which is helpful.
+
+4. What is a side-effect function?
+
+> A side effect funciton is a function that doesn't try to change the data you are using, but instead creates output of your data without altering it.
+
+5. Why can you name a variable sd in a function and not cause any issues with the sd function?
+
+> You can name a variable sd within a function and it won't cause issues with the sd function because within functions a temporary environment is created that is separate from the global environment. Therefore, the temporary environment will have an sd variable stored in it that is not stored in the global environment.
+
+# Task 2: Writing R Functions
+
+## Loading necessary packages
+
+```{r}
+library(tidyverse)
+library(Metrics)
+```
+
+
+## Function that Returns RMSE
+
+This function will take in two vectors (a response vector and a prediction vector) and will compute and return the RMSE of the vectors.
+
+```{r}
+getRMSE <- function(response, prediction, ...) {
+  errors <- (response - prediction)^2
+  rmse <- sqrt(mean(errors, ...))
+  return(rmse)
+}
+```
+
+## Testing our Function with Random Data
+
+Here we will test our getRMSE function we created on data that is randomized in order to see if it runs properly.
+
+```{r}
+# Generating random data
+set.seed(10)
+n <- 100
+x <- runif(n)
+resp <- 3 + 10*x + rnorm(n)
+pred <- predict(lm(resp ~ x), data.frame(x))
+# Testing Our Function
+getRMSE(resp, pred)
+# Confirming this is the correct RMSE using premade function
+rmse(resp, pred)
+```
+
+Next, we will replace two of the response values with missing values, and then test our function with and without removing the NA values. We will first test the function without removing NA values here:
+
+```{r}
+# Replacing response values with missing values
+resp[1] <- resp[2] <- NA_real_
+# Testing function without removing NA values
+getRMSE(resp, pred)
+```
+
+Here we will specify the na.rm argument and test the function again:
+
+```{r}
+# Testing function with removing NA values
+getRMSE(resp, pred, na.rm = TRUE)
+```
+
+## Function for MAE
+
+In this code, we will create a function that also takes in a vector of response values and a vector of prediction values. This function will calculate the MAE of the vectors given.
+
+```{r}
+getMAE <- function(response, prediction, ...) {
+  errors <- abs(response - prediction)
+  mae <- mean(errors, ...)
+  return(mae)
+}
+```
+
+## Testing our Function with Random Data
+
+We will now generate random response and prediction data to test the getMAE function we made.
+
+```{r}
+# Generating random data
+set.seed(10)
+n <- 100
+x <- runif(n)
+resp <- 3 + 10*x + rnorm(n)
+pred <- predict(lm(resp ~ x), data.frame(x))
+# Testing our getMAE function
+getMAE(resp, pred)
+# Confirming this is the correct MAE using premade function
+mae(resp, pred)
+```
+
+Next, we will replace two of the response values with missing values, and then test our function with and without removing the NA values. We will first test the function without removing NA values here:
+
+```{r}
+# Replacing response values with missing values
+resp[1] <- resp[2] <- NA_real_
+# Testing function without removing NA values
+getMAE(resp, pred)
+```
+
+Here we will specify the na.rm argument and test the function again:
+
+```{r}
+# Testing function with removing NA values
+getMAE(resp, pred, na.rm = TRUE)
+```
+
+## Wrapper Function Creation
+
+```{r}
+metric_wrapper <- function(response, prediction, metric = c("RMSE", "MAE"), ...) {
+  if(!(is.vector(response) & is.vector(prediction) & is.atomic(response) & is.atomic(prediction) & is.numeric(response) & is.numeric(prediction))) {
+    stop("One or both inputs are not numeric atomic vectors.")
+  }
+  else if("RMSE" %in% metric & "MAE" %in% metric) {
+    rmse <- getRMSE(response, prediction, ...)
+    mae <- getMAE(response, prediction, ...)
+    return(list("Root Mean Square Error" = rmse, "Mean Absolute Error" = mae))
+  }
+
+  else if("MAE" %in% metric) {
+    mae <- getMAE(response, prediction, ...)
+    return(list("Mean Absolute Error" = mae))
+  } else if("RMSE" %in% metric) {
+    rmse <- getRMSE(response, prediction, ...)
+    return(list("Root Mean Squared Error" = rmse))
+  } else {
+    stop("Wrong metric specified.")
+  }
+}
+```
+
+## Testing our Wrapper Function
+
+Next we will test our wrapper function on randomly generated response and prediction data. For the first test we will specify both metrics.
+
+```{r}
+set.seed(10)
+n <- 100
+x <- runif(n)
+resp <- 3 + 10*x + rnorm(n)
+pred <- predict(lm(resp ~ x), data.frame(x))
+# Calling our function specifying both metrics
+metric_wrapper(resp, pred, c("MAE", "RMSE"))
+```
+
+Next, we will test our function by only specifying RMSE as the metric.
+
+```{r}
+metric_wrapper(resp, pred, "RMSE")
+```
+
+Next we will test our function by just specifying MAE as the metric.
+
+```{r}
+metric_wrapper(resp, pred, "MAE")
+```
+
+Next, we will test our function with both metrics and each metric separately after putting two missing values into the response variables. Here, we will test the function without specifying the na.rm function.
+
+```{r}
+# Adding the NA Values
+resp[1] <- resp[2] <- NA_real_
+# Testing the function with both metrics
+metric_wrapper(resp, pred, c("RMSE", "MAE"))
+# Testing the function specifying RMSE
+metric_wrapper(resp, pred, "RMSE")
+# Testing the function specifying MAE
+metric_wrapper(resp, pred, "MAE")
+```
+
+Now we will specify the na.rm = TRUE argument within our function calls and repeat with both metrics and each one separately.
+
+```{r}
+# Testing the function with both metrics
+metric_wrapper(resp, pred, c("RMSE", "MAE"), na.rm = TRUE)
+# Testing the function specifying RMSE
+metric_wrapper(resp, pred, "RMSE", na.rm = TRUE)
+# Testing the function specifying MAE
+metric_wrapper(resp, pred, "MAE", na.rm = TRUE)
+```
+
+Next, we will pass our wrapper function a data frame instead of a vector, to see if the function stops and an error message occurs.
+
+```{r}
+resp <- data.frame(resp)
+metric_wrapper(response = resp_df, pred)
+```
+
+Our function successfully stopped and sent out the correct error message when passing it a data frame, which means it is working correctly.
+
+
+# Task 3: Querying an API and a Tidy-Style Function
+
+```{r}
+URL <- "https://newsapi.org/v2/everything?q=tesla&from=2024-05-24&sortBy=publishedAt&apiKey=e04b926ae2dc4c96a39f4d4011adf87a"
+tech_crunch <- httr::GET(URL)
+
+```
+

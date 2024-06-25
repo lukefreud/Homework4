@@ -1,0 +1,58 @@
+[
+  {
+    "objectID": "ST558HW4.html",
+    "href": "ST558HW4.html",
+    "title": "ST 558 Homework 4",
+    "section": "",
+    "text": "What is the purpose of the lapply() function? What is the equivalent purrr function?\n\n\nThis function take in either a data frame, vector or list as input and always outputs a list after applying a specific function to your data. The equivalent purrr function is the map() function.\n\n\nSuppose we have a list called my_list. Each element of the list is a numeric data frame (all columns are numeric). We want use lapply() to run the code cor(numeric_matrix, method = “kendall”) on each element of the list. Write code to do this below!\n\n\nlapply(numeric_matrix = my_list, FUN = cor, method = “kendall”)\n\n\nWhat are two advantages of using purrr functions instead of the BaseR apply family?\n\n\nThe main advantage of the purrr functions is there is more consistency within the function family than there is with the BaseR family. The other advantage is that purrr functions give a shorthand way to make anonymous functions, which is helpful.\n\n\nWhat is a side-effect function?\n\n\nA side effect funciton is a function that doesn’t try to change the data you are using, but instead creates output of your data without altering it.\n\n\nWhy can you name a variable sd in a function and not cause any issues with the sd function?\n\n\nYou can name a variable sd within a function and it won’t cause issues with the sd function because within functions a temporary environment is created that is separate from the global environment. Therefore, the temporary environment will have an sd variable stored in it that is not stored in the global environment."
+  },
+  {
+    "objectID": "ST558HW4.html#loading-necessary-packages",
+    "href": "ST558HW4.html#loading-necessary-packages",
+    "title": "ST 558 Homework 4",
+    "section": "Loading necessary packages",
+    "text": "Loading necessary packages\n\nlibrary(tidyverse)\n\n── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──\n✔ dplyr     1.1.4     ✔ readr     2.1.5\n✔ forcats   1.0.0     ✔ stringr   1.5.1\n✔ ggplot2   3.5.1     ✔ tibble    3.2.1\n✔ lubridate 1.9.3     ✔ tidyr     1.3.0\n✔ purrr     1.0.2     \n── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──\n✖ dplyr::filter() masks stats::filter()\n✖ dplyr::lag()    masks stats::lag()\nℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors\n\nlibrary(Metrics)\n\nWarning: package 'Metrics' was built under R version 4.3.3"
+  },
+  {
+    "objectID": "ST558HW4.html#function-that-returns-rmse",
+    "href": "ST558HW4.html#function-that-returns-rmse",
+    "title": "ST 558 Homework 4",
+    "section": "Function that Returns RMSE",
+    "text": "Function that Returns RMSE\nThis function will take in two vectors (a response vector and a prediction vector) and will compute and return the RMSE of the vectors.\n\ngetRMSE &lt;- function(response, prediction, ...) {\n  errors &lt;- (response - prediction)^2\n  rmse &lt;- sqrt(mean(errors, ...))\n  return(rmse)\n}"
+  },
+  {
+    "objectID": "ST558HW4.html#testing-our-function-with-random-data",
+    "href": "ST558HW4.html#testing-our-function-with-random-data",
+    "title": "ST 558 Homework 4",
+    "section": "Testing our Function with Random Data",
+    "text": "Testing our Function with Random Data\nHere we will test our getRMSE function we created on data that is randomized in order to see if it runs properly.\n\n# Generating random data\nset.seed(10)\nn &lt;- 100\nx &lt;- runif(n)\nresp &lt;- 3 + 10*x + rnorm(n)\npred &lt;- predict(lm(resp ~ x), data.frame(x))\n# Testing Our Function\ngetRMSE(resp, pred)\n\n[1] 0.9581677\n\n# Confirming this is the correct RMSE using premade function\nrmse(resp, pred)\n\n[1] 0.9581677\n\n\nNext, we will replace two of the response values with missing values, and then test our function with and without removing the NA values. We will first test the function without removing NA values here:\n\n# Replacing response values with missing values\nresp[1] &lt;- resp[2] &lt;- NA_real_\n# Testing function without removing NA values\ngetRMSE(resp, pred)\n\n[1] NA\n\n\nHere we will specify the na.rm argument and test the function again:\n\n# Testing function with removing NA values\ngetRMSE(resp, pred, na.rm = TRUE)\n\n[1] 0.9661699"
+  },
+  {
+    "objectID": "ST558HW4.html#function-for-mae",
+    "href": "ST558HW4.html#function-for-mae",
+    "title": "ST 558 Homework 4",
+    "section": "Function for MAE",
+    "text": "Function for MAE\nIn this code, we will create a function that also takes in a vector of response values and a vector of prediction values. This function will calculate the MAE of the vectors given.\n\ngetMAE &lt;- function(response, prediction, ...) {\n  errors &lt;- abs(response - prediction)\n  mae &lt;- mean(errors, ...)\n  return(mae)\n}"
+  },
+  {
+    "objectID": "ST558HW4.html#testing-our-function-with-random-data-1",
+    "href": "ST558HW4.html#testing-our-function-with-random-data-1",
+    "title": "ST 558 Homework 4",
+    "section": "Testing our Function with Random Data",
+    "text": "Testing our Function with Random Data\nWe will now generate random response and prediction data to test the getMAE function we made.\n\n# Generating random data\nset.seed(10)\nn &lt;- 100\nx &lt;- runif(n)\nresp &lt;- 3 + 10*x + rnorm(n)\npred &lt;- predict(lm(resp ~ x), data.frame(x))\n# Testing our getMAE function\ngetMAE(resp, pred)\n\n[1] 0.8155776\n\n# Confirming this is the correct MAE using premade function\nmae(resp, pred)\n\n[1] 0.8155776\n\n\nNext, we will replace two of the response values with missing values, and then test our function with and without removing the NA values. We will first test the function without removing NA values here:\n\n# Replacing response values with missing values\nresp[1] &lt;- resp[2] &lt;- NA_real_\n# Testing function without removing NA values\ngetMAE(resp, pred)\n\n[1] NA\n\n\nHere we will specify the na.rm argument and test the function again:\n\n# Testing function with removing NA values\ngetMAE(resp, pred, na.rm = TRUE)\n\n[1] 0.8241201"
+  },
+  {
+    "objectID": "ST558HW4.html#wrapper-function-creation",
+    "href": "ST558HW4.html#wrapper-function-creation",
+    "title": "ST 558 Homework 4",
+    "section": "Wrapper Function Creation",
+    "text": "Wrapper Function Creation\n\nmetric_wrapper &lt;- function(response, prediction, metric = c(\"RMSE\", \"MAE\"), ...) {\n  if(!(is.vector(response) & is.vector(prediction) & is.atomic(response) & is.atomic(prediction) & is.numeric(response) & is.numeric(prediction))) {\n    stop(\"One or both inputs are not numeric atomic vectors.\")\n  }\n  else if(\"RMSE\" %in% metric & \"MAE\" %in% metric) {\n    rmse &lt;- getRMSE(response, prediction, ...)\n    mae &lt;- getMAE(response, prediction, ...)\n    return(list(\"Root Mean Square Error\" = rmse, \"Mean Absolute Error\" = mae))\n  }\n\n  else if(\"MAE\" %in% metric) {\n    mae &lt;- getMAE(response, prediction, ...)\n    return(list(\"Mean Absolute Error\" = mae))\n  } else if(\"RMSE\" %in% metric) {\n    rmse &lt;- getRMSE(response, prediction, ...)\n    return(list(\"Root Mean Squared Error\" = rmse))\n  } else {\n    stop(\"Wrong metric specified.\")\n  }\n}"
+  },
+  {
+    "objectID": "ST558HW4.html#testing-our-wrapper-function",
+    "href": "ST558HW4.html#testing-our-wrapper-function",
+    "title": "ST 558 Homework 4",
+    "section": "Testing our Wrapper Function",
+    "text": "Testing our Wrapper Function\nNext we will test our wrapper function on randomly generated response and prediction data. For the first test we will specify both metrics.\n\nset.seed(10)\nn &lt;- 100\nx &lt;- runif(n)\nresp &lt;- 3 + 10*x + rnorm(n)\npred &lt;- predict(lm(resp ~ x), data.frame(x))\n# Calling our function specifying both metrics\nmetric_wrapper(resp, pred, c(\"MAE\", \"RMSE\"))\n\n$`Root Mean Square Error`\n[1] 0.9581677\n\n$`Mean Absolute Error`\n[1] 0.8155776\n\n\nNext, we will test our function by only specifying RMSE as the metric.\n\nmetric_wrapper(resp, pred, \"RMSE\")\n\n$`Root Mean Squared Error`\n[1] 0.9581677\n\n\nNext we will test our function by just specifying MAE as the metric.\n\nmetric_wrapper(resp, pred, \"MAE\")\n\n$`Mean Absolute Error`\n[1] 0.8155776\n\n\nNext, we will test our function with both metrics and each metric separately after putting two missing values into the response variables. Here, we will test the function without specifying the na.rm function.\n\n# Adding the NA Values\nresp[1] &lt;- resp[2] &lt;- NA_real_\n# Testing the function with both metrics\nmetric_wrapper(resp, pred, c(\"RMSE\", \"MAE\"))\n\n$`Root Mean Square Error`\n[1] NA\n\n$`Mean Absolute Error`\n[1] NA\n\n# Testing the function specifying RMSE\nmetric_wrapper(resp, pred, \"RMSE\")\n\n$`Root Mean Squared Error`\n[1] NA\n\n# Testing the function specifying MAE\nmetric_wrapper(resp, pred, \"MAE\")\n\n$`Mean Absolute Error`\n[1] NA\n\n\nNow we will specify the na.rm = TRUE argument within our function calls and repeat with both metrics and each one separately.\n\n# Testing the function with both metrics\nmetric_wrapper(resp, pred, c(\"RMSE\", \"MAE\"), na.rm = TRUE)\n\n$`Root Mean Square Error`\n[1] 0.9661699\n\n$`Mean Absolute Error`\n[1] 0.8241201\n\n# Testing the function specifying RMSE\nmetric_wrapper(resp, pred, \"RMSE\", na.rm = TRUE)\n\n$`Root Mean Squared Error`\n[1] 0.9661699\n\n# Testing the function specifying MAE\nmetric_wrapper(resp, pred, \"MAE\", na.rm = TRUE)\n\n$`Mean Absolute Error`\n[1] 0.8241201\n\n\nNext, we will pass our wrapper function a data frame instead of a vector, to see if the function stops and an error message occurs.\n\nresp &lt;- data.frame(resp)\nmetric_wrapper(response = resp, pred)\n\nError in metric_wrapper(response = resp, pred): One or both inputs are not numeric atomic vectors.\n\n\nOur function successfully stopped and sent out the correct error message when passing it a data frame, which means it is working correctly."
+  }
+]

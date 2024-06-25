@@ -1,7 +1,7 @@
 ---
 title: "ST 558 Homework 4"
 author: "Luke Freudenheim"
-description: EDIT THIS LATER
+description: In this report we will first answer conceptual questions about certain functions within BaseR and dplyr. We will then move into function creation. We will create functions that will calculate both the MAE and RMSE of given response values and prediction values. Lastly, we will query to an API by first entering a specific URL and eventually create a function that automates this process given an API key, a title, and a date.
 format: html
 ---
 
@@ -206,9 +206,9 @@ metric_wrapper(resp, pred, "MAE", na.rm = TRUE)
 
 Next, we will pass our wrapper function a data frame instead of a vector, to see if the function stops and an error message occurs.
 
-```{r}
+```{r, error=TRUE}
 resp <- data.frame(resp)
-metric_wrapper(response = resp_df, pred)
+metric_wrapper(response = resp, pred)
 ```
 
 Our function successfully stopped and sent out the correct error message when passing it a data frame, which means it is working correctly.
@@ -224,7 +224,7 @@ library(jsonlite)
 URL <- "https://newsapi.org/v2/top-headlines?sources=techcrunch&apiKey=e04b926ae2dc4c96a39f4d4011adf87a"
 tech_crunch <- httr::GET(URL)
 parsed_tech_crunch_data <- fromJSON(rawToChar(tech_crunch$content))
-final_tech_crunch <- parsed_tech_crunch_data$articles
+final_tech_crunch <- as_tibble(parsed_tech_crunch_data$articles)
 final_tech_crunch
 ```
 
@@ -235,7 +235,7 @@ API_Query <- function(title, time, api_key) {
 url <- paste("https://newsapi.org/v2/everything?q=", title, "&from=", time, "&apiKey=", api_key, sep = "")
 raw_data <- httr::GET(url)
 parsed_data <- fromJSON(rawToChar(raw_data$content))
-final_data <- parsed_data$articles
+final_data <- as_tibble(parsed_data$articles)
 return(final_data)
 }
 ```

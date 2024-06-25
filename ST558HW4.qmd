@@ -216,9 +216,42 @@ Our function successfully stopped and sent out the correct error message when pa
 
 # Task 3: Querying an API and a Tidy-Style Function
 
-```{r}
-URL <- "https://newsapi.org/v2/everything?q=tesla&from=2024-05-24&sortBy=publishedAt&apiKey=e04b926ae2dc4c96a39f4d4011adf87a"
-tech_crunch <- httr::GET(URL)
+We will now query an API and obtain a data set with the top headlines from TechCrunch in recent months.
 
+```{r}
+library(httr)
+library(jsonlite)
+URL <- "https://newsapi.org/v2/top-headlines?sources=techcrunch&apiKey=e04b926ae2dc4c96a39f4d4011adf87a"
+tech_crunch <- httr::GET(URL)
+parsed_tech_crunch_data <- fromJSON(rawToChar(tech_crunch$content))
+final_tech_crunch <- parsed_tech_crunch_data$articles
+final_tech_crunch
 ```
 
+Next, we will write a function that takes in the title or subject to search for, the time period to search from, and the API key. It will output the data frame of the articles in that subject and time period.
+
+```{r}
+API_Query <- function(title, time, api_key) {
+url <- paste("https://newsapi.org/v2/everything?q=", title, "&from=", time, "&apiKey=", api_key, sep = "")
+raw_data <- httr::GET(url)
+parsed_data <- fromJSON(rawToChar(raw_data$content))
+final_data <- parsed_data$articles
+return(final_data)
+}
+```
+
+Here, we will test our API_Query function that we just made using two different dates and subjects. The first title we will use is tesla, so we will try to find the articles from the last month regarding tesla.
+
+```{r}
+API_Query("tesla", "2024-05-26", "e04b926ae2dc4c96a39f4d4011adf87a")
+```
+
+Our function was successful in returning the data frame with articles containing tesla from the last month.
+
+Next, we will use the subject "sports" and we will change the date given. We will see if this successfully returns the articles regarding sports from the date given until now.
+
+```{r}
+API_Query("sports", "06-20-2024", "e04b926ae2dc4c96a39f4d4011adf87a")
+```
+
+Our function successfully allows us to query this API!
